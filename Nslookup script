@@ -1,0 +1,47 @@
+### This script performs nslookup on all DNS names or IP addresses which you list in the text file referenced in $InputFile.
+### One IP address or DNS names (* one per line).
+write-host    "        ####################################      
+
+            BULK NS-LOOKUP SCRIPT     
+
+         ####################################"
+
+$InputFile = 'c:\users\Desktop\list.txt' # Create a file and enter the path with specifying file name #
+
+$addresses = get-content $InputFile
+
+$reader = New-Object IO.StreamReader $InputFile
+
+  while($reader.ReadLine() -ne $null){ $TotalIPs++ }
+
+write-host  ""   
+
+write-Host "Performing nslookup on every IP address..."   
+
+    foreach($address in $addresses) {
+
+      ## Progress bar
+
+      $i++
+
+      $percentdone = (($i / $TotalIPs) * 100)
+
+      $percentdonerounded = "{0:N0}" -f $percentdone
+
+      Write-Progress -Activity "Initiating nslookups" -CurrentOperation "Working on IP address: $address (IP $i of $TotalIPs)" -Status "$percentdonerounded% complete" -PercentComplete $percentdone
+
+      ## End progress bar
+
+      try {
+
+  [system.net.dns]::resolve($address) | Select HostName,AddressList
+
+        }
+
+        catch {
+
+          Write-host "$address was not found. $_" -ForegroundColor Green
+
+        }
+
+      }
